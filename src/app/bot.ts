@@ -1,5 +1,5 @@
-import { Telegraf } from 'telegraf';
 import dotenv from 'dotenv';
+import { Telegraf } from 'telegraf';
 import { setupRoutes } from './router';
 
 dotenv.config();
@@ -11,7 +11,6 @@ if (!token) {
 
 const bot = new Telegraf(token);
 
-// Setup all the routes
 setupRoutes(bot);
 
 export default bot;
