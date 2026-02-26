@@ -4,6 +4,7 @@ A Telegram bot that acts as your personal language tutor, correcting your messag
 
 ## 🚀 Features
 
+*   **Natural Conversation:** Chat naturally with the bot without needing commands! It responds in your target language to keep the conversation flowing, while still correcting your mistakes.
 *   **Message Correction:** Corrects grammar, word choice, prepositions, and tenses.
 *   **Explanations in Native Language:** Corrections come with a simple explanation exclusively in **Brazilian Portuguese**. This is a core feature and cannot be customized.
 *   **Error Tracking:** The bot monitors recurring mistakes and triggers reinforcement alerts after 3 errors of the same type.
@@ -77,8 +78,8 @@ npm run dev
 ## 🤖 How to Use the Bot
 
 1.  In Telegram, find your bot and send `/start` to begin.
-2.  Practice by sending messages in English (or your target language).
-3.  Receive corrections and detailed explanations.
+2.  **Start Chatting:** Send any message in your target language. The bot will respond naturally and provide corrections/explanations only if you make a mistake.
+3.  **No Commands Needed:** You can practice without using `/start` or `/practice` every time. Just talk!
 4.  Useful Commands:
     *   `/practice`: Generates a personalized exercise based on your past mistakes.
     *   `/progress`: View your most common errors classified by type.
