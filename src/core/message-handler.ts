@@ -66,7 +66,6 @@ export const handleCommand = async (
       );
       const exercise = await getPracticeExercise(
         user.targetLanguage,
-        user.nativeLanguage,
         mostCommonError,
       );
 

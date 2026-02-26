@@ -21,6 +21,7 @@ export interface CorrectionResponse {
     | 'word_choice'
     | 'syntax'
     | null;
+  reply: string;
 }
 
 export interface PracticeExercise {
@@ -34,12 +35,13 @@ const model = 'gpt-4o-mini'; // Or another suitable model
 export const getCorrection = async (
   message: string,
   targetLanguage: string,
-  nativeLanguage: string,
+  context: string = 'None',
 ): Promise<CorrectionResponse | null> => {
   const filledPrompt = correctionPrompt
     .replace('{message}', message)
     .replace('{targetLanguage}', targetLanguage)
-    .replace('{nativeLanguage}', nativeLanguage);
+    .replace('{nativeLanguage}', 'Portuguese (Brazilian)')
+    .replace('{context}', context);
 
   try {
     const completion = await openai.chat.completions.create({
@@ -65,12 +67,11 @@ export const getCorrection = async (
 
 export const getPracticeExercise = async (
   targetLanguage: string,
-  nativeLanguage: string,
   errorType: string = 'general',
 ): Promise<PracticeExercise | null> => {
   const filledPrompt = practicePrompt
     .replace('{targetLanguage}', targetLanguage)
-    .replace('{nativeLanguage}', nativeLanguage)
+    .replace('{nativeLanguage}', 'Portuguese (Brazilian)')
     .replace('{errorType}', errorType);
 
   try {

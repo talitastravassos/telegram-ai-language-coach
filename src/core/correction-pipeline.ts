@@ -31,14 +31,19 @@ const logError = async (
 };
 
 const formatResponse = (correction: CorrectionResponse): string => {
-  if (correction.errorType === null) {
-    return `"${correction.corrected}" is correct! Keep it up.`;
-  }
-
-  return `🤔
+  let message = '';
+  
+  if (correction.errorType !== null) {
+    message += `🤔
 Correction: "${correction.corrected}"
 Explanation: ${correction.explanation}
-Error Type: ${correction.errorType}`;
+Error Type: ${correction.errorType}
+
+`;
+  }
+
+  message += `🤖 ${correction.reply}`;
+  return message;
 };
 
 const generateReinforcementMessage = (errorType: string): string => {
@@ -81,11 +86,7 @@ export const processMessage = async (
     correction = JSON.parse(cachedCorrection) as CorrectionResponse;
   } else {
     console.log(`Cache miss for message: "${text}". Calling AI.`);
-    correction = await getCorrection(
-      text,
-      user.targetLanguage,
-      user.nativeLanguage,
-    );
+    correction = await getCorrection(text, user.targetLanguage, user.context);
   }
 
   if (!correction) {
