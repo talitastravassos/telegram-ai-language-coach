@@ -33,11 +33,13 @@ const model = 'gpt-4o-mini'; // Or another suitable model
 
 export const getCorrection = async (
   message: string,
-  language: string,
+  targetLanguage: string,
+  nativeLanguage: string,
 ): Promise<CorrectionResponse | null> => {
   const filledPrompt = correctionPrompt
     .replace('{message}', message)
-    .replace('{language}', language);
+    .replace('{targetLanguage}', targetLanguage)
+    .replace('{nativeLanguage}', nativeLanguage);
 
   try {
     const completion = await openai.chat.completions.create({
@@ -62,11 +64,13 @@ export const getCorrection = async (
 };
 
 export const getPracticeExercise = async (
-  language: string,
+  targetLanguage: string,
+  nativeLanguage: string,
   errorType: string = 'general',
 ): Promise<PracticeExercise | null> => {
   const filledPrompt = practicePrompt
-    .replace('{language}', language)
+    .replace('{targetLanguage}', targetLanguage)
+    .replace('{nativeLanguage}', nativeLanguage)
     .replace('{errorType}', errorType);
 
   try {

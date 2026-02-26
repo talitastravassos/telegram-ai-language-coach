@@ -5,7 +5,8 @@ const USER_ERRORS_PREFIX = 'user:errors:';
 
 export interface User {
     id: number;
-    language: string;
+    targetLanguage: string;
+    nativeLanguage: string;
     context?: string;
 }
 
@@ -22,7 +23,8 @@ export const getUser = async (userId: number): Promise<User> => {
     // Create a new user if one doesn't exist
     const newUser: User = {
         id: userId,
-        language: 'English',
+        targetLanguage: 'English',
+        nativeLanguage: 'Portuguese (Brazilian)',
     };
     await client.set(userKey, JSON.stringify(newUser));
     return newUser;

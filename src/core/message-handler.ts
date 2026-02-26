@@ -1,7 +1,7 @@
 // src/core/message-handler.ts
 import { processMessage } from './correction-pipeline';
 import { getErrorHistory, getUser, updateUserMeta } from '../users/user-service';
-import { getPracticeExercise } from '../ai/openai-client';
+import { getPracticeExercise } from '../ai/gemini-client';
 
 export const handleTextMessage = async (userId: number, text: string): Promise<string> => {
     console.log(`Routing message from user ${userId} to correction pipeline.`);
@@ -19,7 +19,7 @@ export const handleCommand = async (userId: number, text: string): Promise<strin
 
     switch (command) {
         case '/start':
-            return `Welcome, language learner! I'm here to help you practice ${user.language}.
+            return `Welcome, language learner! I'm here to help you practice ${user.targetLanguage}.
 - Send me a message and I'll correct it.
 - Use /progress to see your error history.
 - Use /practice to get an exercise.
@@ -47,7 +47,7 @@ export const handleCommand = async (userId: number, text: string): Promise<strin
                 : 'general';
             
             console.log(`Generating practice for user ${userId}, targeting error: ${mostCommonError}`);
-            const exercise = await getPracticeExercise(user.language, mostCommonError);
+            const exercise = await getPracticeExercise(user.targetLanguage, user.nativeLanguage, mostCommonError);
 
             if (!exercise) {
                 return "I couldn't generate an exercise for you right now. Please try again later.";
@@ -55,7 +55,7 @@ export const handleCommand = async (userId: number, text: string): Promise<strin
 
             // The AI will sometimes return the same sentence for the prompt and the answer.
             if (exercise.sentence === exercise.correct_answer) {
-                return `Let's practice! Try translating this to ${user.language}:\n\n"${exercise.sentence}"`;
+                return `Let's practice! Try translating this to ${user.targetLanguage}:\n\n"${exercise.sentence}"`;
             }
 
             return `Let's practice! (${exercise.type.replace('_', ' ')})\n\n"${exercise.sentence}"`;
