@@ -10,7 +10,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Define the expected response structure
 export interface CorrectionResponse {
   corrected: string;
   explanation: string;
@@ -30,7 +29,7 @@ export interface PracticeExercise {
   correct_answer: string;
 }
 
-const model = 'gpt-4o-mini'; // Or another suitable model
+const model = 'gpt-4o-mini';
 
 export const getCorrection = async (
   message: string,
@@ -48,7 +47,7 @@ export const getCorrection = async (
       model: model,
       messages: [{ role: 'system', content: filledPrompt }],
       temperature: 0.3,
-      response_format: { type: 'json_object' }, // Use JSON mode
+      response_format: { type: 'json_object' },
     });
 
     const content = completion.choices?.[0]?.message?.content;

@@ -1,5 +1,5 @@
-import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
+import express, { Request, Response } from 'express';
 import bot from './bot';
 
 dotenv.config();
@@ -22,14 +22,13 @@ app.get('/', (req: Request, res: Response) => {
 
 app.listen(port, async () => {
   console.log(`Server is running at http://localhost:${port}`);
-  
+
   const webhookDomain = process.env.WEBHOOK_DOMAIN;
   if (!webhookDomain) {
     console.error('WEBHOOK_DOMAIN must be provided in .env');
     process.exit(1);
   }
 
-  // Set the webhook
   const webhookUrl = `${webhookDomain}${secretPath}`;
   await bot.telegram.setWebhook(webhookUrl);
   console.log(`Webhook set to ${webhookUrl}`);

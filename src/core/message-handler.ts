@@ -73,7 +73,6 @@ export const handleCommand = async (
         return "I couldn't generate an exercise for you right now. Please try again later.";
       }
 
-      // The AI will sometimes return the same sentence for the prompt and the answer.
       if (exercise.sentence === exercise.correct_answer) {
         return `Let's practice! Try translating this to ${user.targetLanguage}:\n\n"${exercise.sentence}"`;
       }
