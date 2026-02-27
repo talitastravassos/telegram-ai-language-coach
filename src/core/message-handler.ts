@@ -6,10 +6,18 @@ import {
 } from '../users/user-service';
 import { processMessage } from './correction-pipeline';
 
+const NO_LANGUAGE_SET_MESSAGE =
+  'Please set your target language first using the /language command (e.g., /language Spanish).';
+
 export const handleTextMessage = async (
   userId: number,
   text: string,
 ): Promise<string> => {
+  const user = await getUser(userId);
+  if (!user.targetLanguage) {
+    return NO_LANGUAGE_SET_MESSAGE;
+  }
+
   console.log(`Routing message from user ${userId} to correction pipeline.`);
   return processMessage(userId, text);
 };
@@ -26,13 +34,27 @@ export const handleCommand = async (
 
   const user = await getUser(userId);
 
+  // Allow /start and /language even if language is not set
+  if (!user.targetLanguage && !['/start', '/language'].includes(command)) {
+    return NO_LANGUAGE_SET_MESSAGE;
+  }
+
   switch (command) {
     case '/start':
-      return `Welcome, language learner! I'm here to help you practice ${user.targetLanguage}.
+      const welcomeMessage = `Welcome, language learner! I'm here to help you practice a new language.`;
+      const languageHint = user.targetLanguage
+        ? `Your current target language is ${user.targetLanguage}.`
+        : `Please start by setting your target language with the /language command (e.g., /language Spanish).`;
+
+      return `${welcomeMessage}
+${languageHint}
+
+Here are the commands you can use:
 - Send me a message and I'll correct it.
 - Use /progress to see your error history.
 - Use /practice to get an exercise.
-- Use /context [topic] to set a conversation topic (e.g., /context travel).`;
+- Use /context [topic] to set a conversation topic.
+- Use /language [language] to change your target language.`;
 
     case '/progress':
       const history = await getErrorHistory(userId);
@@ -77,7 +99,10 @@ export const handleCommand = async (
         return `Let's practice! Try translating this to ${user.targetLanguage}:\n\n"${exercise.sentence}"`;
       }
 
-      return `Let's practice! (${exercise.type.replace('_', ' ')})\n\n"${exercise.sentence}"`;
+      return `Let's practice! (${exercise.type.replace(
+        '_',
+        ' ',
+      )})\n\n"${exercise.sentence}"`;
 
     case '/context':
       if (args.length > 0) {
@@ -89,6 +114,19 @@ export const handleCommand = async (
         return user.context
           ? `Current context is: "${user.context}"`
           : 'No context is currently set. Use /context [topic] to set one.';
+      }
+
+    case '/language':
+      if (args.length > 0) {
+        const newLanguage = args.join(' ');
+        user.targetLanguage = newLanguage;
+        await updateUserMeta(user);
+        return `Target language set to: "${newLanguage}"`;
+      } else {
+        const currentLanguage = user.targetLanguage
+          ? `Your current target language is: "${user.targetLanguage}".`
+          : 'You have not set a target language yet.';
+        return `${currentLanguage} Use /language [language] to set a new one.`;
       }
 
     default:

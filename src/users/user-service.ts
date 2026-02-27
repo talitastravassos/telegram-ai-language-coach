@@ -18,7 +18,7 @@ export const getUser = async (userId: number): Promise<User> => {
 
   const defaults = {
     id: userId,
-    targetLanguage: 'English',
+    targetLanguage: '',
     nativeLanguage: 'Portuguese (Brazilian)',
   };
 

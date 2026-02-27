@@ -13,6 +13,7 @@ const setupCommands = (bot: Telegraf) => {
   bot.command('practice', commandHandler);
   bot.command('progress', commandHandler);
   bot.command('context', commandHandler);
+  bot.command('language', commandHandler);
 };
 
 export const setupRoutes = (bot: Telegraf) => {
@@ -26,7 +27,11 @@ export const setupRoutes = (bot: Telegraf) => {
       // Check if it's one of the known commands. If not, Telegraf won't handle it
       // and we can provide a generic "unknown command" message.
       const command = text.split(' ')[0] || '';
-      if (!['/start', '/practice', '/progress', '/context'].includes(command)) {
+      if (
+        !['/start', '/practice', '/progress', '/context', '/language'].includes(
+          command
+        )
+      ) {
         const reply = await handleCommand(userId, text);
         await ctx.reply(reply);
       }
