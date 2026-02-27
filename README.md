@@ -4,29 +4,29 @@ A Telegram bot that acts as your personal language tutor, correcting your messag
 
 ## 🚀 Features
 
-*   **Choose Your Language:** Set any target language you want to learn (e.g., Spanish, French, Japanese).
-*   **Natural Conversation:** Chat naturally with the bot without needing commands! It responds in your target language to keep the conversation flowing, while still correcting your mistakes.
-*   **Message Correction:** Corrects grammar, word choice, prepositions, and tenses.
-*   **Explanations in Native Language:** Corrections come with a simple explanation exclusively in **Brazilian Portuguese**. This is a core feature and cannot be customized.
-*   **Error Tracking:** The bot monitors recurring mistakes and triggers reinforcement alerts after 3 errors of the same type.
-*   **Personalized Exercises:** Generate practice exercises (`/practice`) based on your personal error history. Exercises are focused on translations between the target language and Brazilian Portuguese.
-*   **Conversation Context:** Set a specific topic (`/context`) to guide your practice and make learning more relevant.
+- **Choose Your Language:** Set any target language you want to learn (e.g., Spanish, French, Japanese).
+- **Natural Conversation:** Chat naturally with the bot without needing commands! It responds in your target language to keep the conversation flowing, while still correcting your mistakes.
+- **Message Correction:** Corrects grammar, word choice, prepositions, and tenses.
+- **Explanations in Native Language:** Corrections come with a simple explanation exclusively in **Brazilian Portuguese**. This is a core feature and cannot be customized.
+- **Error Tracking:** The bot monitors recurring mistakes and triggers reinforcement alerts after 3 errors of the same type.
+- **Personalized Exercises:** Generate practice exercises (`/practice`) based on your personal error history. Exercises are focused on translations between the target language and Brazilian Portuguese.
+- **Conversation Context:** Set a specific topic (`/context`) to guide your practice and make learning more relevant.
 
 ## 🛠️ Tech Stack
 
-*   **Node.js & TypeScript**
-*   **Express:** Server for handling incoming webhooks.
-*   **Telegraf:** Framework for the Telegram Bot API.
-*   **Redis:** Persistence for user metadata and error history.
-*   **OpenAI API:** Powered by GPT-4o-mini for high-quality language processing.
+- **Node.js & TypeScript**
+- **Express:** Server for handling incoming webhooks.
+- **Telegraf:** Framework for the Telegram Bot API.
+- **Redis:** Persistence for user metadata and error history.
+- **OpenAI API:** Powered by GPT-4o-mini for high-quality language processing.
 
 ## 📋 Prerequisites
 
-*   Node.js (v18+)
-*   A Telegram Bot Token (obtained from [@BotFather](https://t.me/BotFather))
-*   An OpenAI API Key
-*   [ngrok](https://ngrok.com/) (for local development)
-*   Redis (running locally or via Docker)
+- Node.js (v18+)
+- A Telegram Bot Token (obtained from [@BotFather](https://t.me/BotFather))
+- An OpenAI API Key
+- [ngrok](https://ngrok.com/) (for local development)
+- Redis (running locally or via Docker)
 
 ## 🏗️ Setup and Execution
 
@@ -83,16 +83,15 @@ npm run dev
 3.  **Start Chatting:** Send any message in your target language. The bot will respond naturally and provide corrections/explanations only if you make a mistake.
 4.  **No Commands Needed:** You can practice without using `/start` or `/practice` every time. Just talk!
 5.  Useful Commands:
-    *   `/language [language]`: Sets or changes your target language.
-    *   `/practice`: Generates a personalized exercise based on your past mistakes.
-    *   `/progress`: View your most common errors classified by type.
-    *   `/context [topic]`: Sets a conversation topic (e.g., `/context business`, `/context travel`).
+    - `/language [language]`: Sets or changes your target language.
+    - `/practice`: Generates a personalized exercise based on your past mistakes.
+    - `/progress`: View your most common errors classified by type.
+    - `/context [topic]`: Sets a conversation topic (e.g., `/context business`, `/context travel`).
 
 ## 🗂️ Project Structure
 
-*   `src/app/`: Bot configuration, routes, and Express server.
-*   `src/core/`: Core correction logic (pipeline) and message/command handlers.
-*   `src/ai/`: OpenAI API client integration.
-*   `src/users/`: User metadata management and Redis persistence.
-*   `src/infra/`: Redis database connection.
-*   `src/shared/`: Shared TypeScript interfaces and types.
+- `src/app/`: Bot configuration, routes, and Express server.
+- `src/core/`: Core correction logic (pipeline) and message/command handlers.
+- `src/ai/`: OpenAI API client integration.
+- `src/users/`: User metadata management and Redis persistence.
+- `src/infra/`: Redis database connection.
