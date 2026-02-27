@@ -1,92 +1,191 @@
-import { handleCommand } from './message-handler';
-import { getUser, updateUserMeta } from '../users/user-service';
+import { handleCommand, handleTextMessage } from './message-handler';
+import { getUser, updateUserMeta, getErrorHistory } from '../users/user-service';
+import { processMessage } from './correction-pipeline';
+import { getPracticeExercise } from '../ai/openai-client';
 
 jest.mock('../users/user-service', () => ({
   getUser: jest.fn(),
   updateUserMeta: jest.fn(),
   getErrorHistory: jest.fn(),
-  incrementErrorCount: jest.fn(),
-  resetErrorCount: jest.fn(),
+}));
+
+jest.mock('./correction-pipeline', () => ({
+  processMessage: jest.fn(),
 }));
 
 jest.mock('../ai/openai-client', () => ({
-    getCorrection: jest.fn(),
-    getPracticeExercise: jest.fn(),
-    }));
+  getPracticeExercise: jest.fn(),
+}));
 
-describe('handleCommand', () => {
+describe('Message Handler', () => {
   const mockGetUser = getUser as jest.Mock;
   const mockUpdateUserMeta = updateUserMeta as jest.Mock;
+  const mockGetErrorHistory = getErrorHistory as jest.Mock;
+  const mockProcessMessage = processMessage as jest.Mock;
+  const mockGetPracticeExercise = getPracticeExercise as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should set the target language when /language command is used with an argument', async () => {
-    const userId = 123;
-    const initialUser = { id: userId, targetLanguage: '' };
-    mockGetUser.mockResolvedValue(initialUser);
+  describe('handleTextMessage', () => {
+    it('should forward message to correction pipeline if target language is set', async () => {
+      const userId = 123;
+      const user = { id: userId, targetLanguage: 'English' };
+      mockGetUser.mockResolvedValue(user);
+      mockProcessMessage.mockResolvedValue('Corrected message');
 
-    const result = await handleCommand(userId, '/language Spanish');
+      const result = await handleTextMessage(userId, 'some message');
 
-    expect(result).toBe('Target language set to: "Spanish"');
-    expect(mockUpdateUserMeta).toHaveBeenCalledWith({
-      id: userId,
-      targetLanguage: 'Spanish',
+      expect(result).toBe('Corrected message');
+      expect(mockProcessMessage).toHaveBeenCalledWith(userId, 'some message');
+    });
+
+    it('should prompt user to set language if target language is not set', async () => {
+      const userId = 123;
+      const user = { id: userId, targetLanguage: '' };
+      mockGetUser.mockResolvedValue(user);
+
+      const result = await handleTextMessage(userId, 'some message');
+
+      expect(result).toContain('Please set your target language first');
+      expect(mockProcessMessage).not.toHaveBeenCalled();
     });
   });
 
-  it('should inform the user of the current language if /language is used without an argument', async () => {
-    const userId = 123;
-    const user = { id: userId, targetLanguage: 'French' };
-    mockGetUser.mockResolvedValue(user);
+  describe('handleCommand', () => {
+    it('should handle /language command with argument', async () => {
+        const userId = 123;
+        const initialUser = { id: userId, targetLanguage: '' };
+        mockGetUser.mockResolvedValue(initialUser);
 
-    const result = await handleCommand(userId, '/language');
+        const result = await handleCommand(userId, '/language Spanish');
 
-    expect(result).toBe('Your current target language is: "French". Use /language [language] to set a new one.');
-    expect(mockUpdateUserMeta).not.toHaveBeenCalled();
-  });
+        expect(result).toBe('Target language set to: "Spanish"');
+        expect(mockUpdateUserMeta).toHaveBeenCalledWith({
+            id: userId,
+            targetLanguage: 'Spanish',
+        });
+    });
+    
+    it('should handle /language command without argument when language is set', async () => {
+        const userId = 123;
+        const user = { id: userId, targetLanguage: 'French' };
+        mockGetUser.mockResolvedValue(user);
 
-  it('should inform the user that no language is set if /language is used without an argument and no language is set', async () => {
-    const userId = 123;
-    const user = { id: userId, targetLanguage: '' };
-    mockGetUser.mockResolvedValue(user);
+        const result = await handleCommand(userId, '/language');
 
-    const result = await handleCommand(userId, '/language');
+        expect(result).toBe('Your current target language is: "French". Use /language [language] to set a new one.');
+    });
 
-    expect(result).toBe('You have not set a target language yet. Use /language [language] to set a new one.');
-    expect(mockUpdateUserMeta).not.toHaveBeenCalled();
-  });
+    it('should handle /progress command with history', async () => {
+      const userId = 123;
+      const user = { id: userId, targetLanguage: 'English' };
+      mockGetUser.mockResolvedValue(user);
+      mockGetErrorHistory.mockResolvedValue({ tense: 2, grammar: 1 });
 
-  it('should prompt the user to set a language for commands other than /start and /language if not set', async () => {
-    const userId = 123;
-    const user = { id: userId, targetLanguage: '' };
-    mockGetUser.mockResolvedValue(user);
+      const result = await handleCommand(userId, '/progress');
 
-    const result = await handleCommand(userId, '/practice');
+      expect(result).toContain("Here's your progress report:");
+      expect(result).toContain('- tense: 2 time(s)');
+      expect(result).toContain('- grammar: 1 time(s)');
+    });
 
-    expect(result).toBe('Please set your target language first using the /language command (e.g., /language Spanish).');
-  });
+    it('should handle /progress command with no history', async () => {
+        const userId = 123;
+        const user = { id: userId, targetLanguage: 'English' };
+        mockGetUser.mockResolvedValue(user);
+        mockGetErrorHistory.mockResolvedValue({});
+  
+        const result = await handleCommand(userId, '/progress');
+  
+        expect(result).toBe("You haven't made any recorded mistakes yet. Keep practicing!");
+      });
 
-  it('should return the welcome message for /start and hint to set the language', async () => {
-    const userId = 123;
-    const user = { id: userId, targetLanguage: '' };
-    mockGetUser.mockResolvedValue(user);
+    it('should handle /practice command successfully', async () => {
+      const userId = 123;
+      const user = { id: userId, targetLanguage: 'English' };
+      mockGetUser.mockResolvedValue(user);
+      mockGetErrorHistory.mockResolvedValue({ tense: 1 });
+      mockGetPracticeExercise.mockResolvedValue({
+        type: 'fill_in_the_blank',
+        sentence: 'I ___ to the store.',
+        correct_answer: 'went',
+      });
 
-    const result = await handleCommand(userId, '/start');
+      const result = await handleCommand(userId, '/practice');
 
-    expect(result).toContain("Welcome, language learner!");
-    expect(result).toContain("Please start by setting your target language with the /language command");
-  });
+      expect(result).toContain('Let\'s practice! (fill in the blank)');
+    });
 
-  it('should return the welcome message for /start and show the current language', async () => {
-    const userId = 123;
-    const user = { id: userId, targetLanguage: 'German' };
-    mockGetUser.mockResolvedValue(user);
+    it('should handle /practice command with translation exercise', async () => {
+        const userId = 123;
+        const user = { id: userId, targetLanguage: 'English' };
+        mockGetUser.mockResolvedValue(user);
+        mockGetErrorHistory.mockResolvedValue({ tense: 1 });
+        mockGetPracticeExercise.mockResolvedValue({
+          type: 'translation',
+          sentence: 'Olá',
+          correct_answer: 'Olá',
+        });
+  
+        const result = await handleCommand(userId, '/practice');
+  
+        expect(result).toContain('Let\'s practice! Try translating this to English');
+        expect(result).toContain('"Olá"');
+      });
 
-    const result = await handleCommand(userId, '/start');
+    it('should handle /practice command when exercise generation fails', async () => {
+        const userId = 123;
+        const user = { id: userId, targetLanguage: 'English' };
+        mockGetUser.mockResolvedValue(user);
+        mockGetErrorHistory.mockResolvedValue({ tense: 1 });
+        mockGetPracticeExercise.mockResolvedValue(null);
 
-    expect(result).toContain("Welcome, language learner!");
-    expect(result).toContain("Your current target language is German.");
+        const result = await handleCommand(userId, '/practice');
+
+        expect(result).toBe("I couldn't generate an exercise for you right now. Please try again later.");
+    });
+
+    it('should handle /context command with new context', async () => {
+      const userId = 123;
+      const user = { id: userId, targetLanguage: 'English', context: '' };
+      mockGetUser.mockResolvedValue(user);
+
+      const result = await handleCommand(userId, '/context travel');
+
+      expect(result).toBe('Context set to: "travel"');
+      expect(mockUpdateUserMeta).toHaveBeenCalledWith({ ...user, context: 'travel' });
+    });
+
+    it('should handle /context command to show current context', async () => {
+        const userId = 123;
+        const user = { id: userId, targetLanguage: 'English', context: 'business' };
+        mockGetUser.mockResolvedValue(user);
+  
+        const result = await handleCommand(userId, '/context');
+  
+        expect(result).toBe('Current context is: "business"');
+      });
+
+      it('should handle /context command when no context is set', async () => {
+        const userId = 123;
+        const user = { id: userId, targetLanguage: 'English', context: undefined };
+        mockGetUser.mockResolvedValue(user);
+  
+        const result = await handleCommand(userId, '/context');
+  
+        expect(result).toBe('No context is currently set. Use /context [topic] to set one.');
+      });
+
+    it('should handle unknown command', async () => {
+      const userId = 123;
+      const user = { id: userId, targetLanguage: 'English' };
+      mockGetUser.mockResolvedValue(user);
+
+      const result = await handleCommand(userId, '/unknown');
+
+      expect(result).toBe('Unknown command: "/unknown". Try /start to see what I can do.');
+    });
   });
 });

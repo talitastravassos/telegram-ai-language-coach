@@ -100,7 +100,7 @@ Here are the commands you can use:
       }
 
       return `Let's practice! (${exercise.type.replace(
-        '_',
+        /_/g,
         ' ',
       )})\n\n"${exercise.sentence}"`;
 
